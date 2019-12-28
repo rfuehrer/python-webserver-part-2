@@ -558,7 +558,10 @@ class Server(BaseHTTPRequestHandler):
 
         self.end_headers()
 
-        return bytes(content, 'UTF-8')
+        if isinstance(content, bytes):
+            return content
+        else:
+            return bytes(content, 'UTF-8')
 
     def respond(self, opts):
         response = self.handle_http(opts['handler'])
@@ -627,7 +630,7 @@ Let's look at `respond` next:
         self.wfile.write(response)
 ```
 
-The only change here is that we're passing through an `opts` argument that contains the handler, and then passing that through to the `handle_http` method call.
+The only change here is that we're passing through an `opts` argument that contains the handler, and then passing that through to the `handle_http` method call. This method now also handles and returns byte and non-byte files.
 
 Finally, let's check out the new `handle_http`:
 ```python
@@ -644,7 +647,10 @@ Finally, let's check out the new `handle_http`:
 
         self.end_headers()
 
-        return bytes(content, 'UTF-8')
+        if isinstance(content, bytes):
+            return content
+        else:
+            return bytes(content, 'UTF-8')
 ```
 
 First, we pull the `status_code` from the handler. If a `BadRequestHandler` made its way through, it'll be a 404, otherwise a 200 in the `TemplateHandler` unless the handler was unable to find the file, in which case it will also respond with a 404 (check out the `TemplateHandler`'s logic to see this in action).
